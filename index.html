@@ -184,6 +184,8 @@
           color:#5b6b61; background:#eef3ee; border-radius:20px; padding:2px 8px; margin-bottom:6px; font-weight:600; }
   .season { display:inline-block; font-size:10px; letter-spacing:.3px; color:#2e6b46; background:#e6f2e8;
           border-radius:20px; padding:2px 8px; margin-left:4px; margin-bottom:6px; font-weight:600; }
+  .card-age { display:inline-block; font-size:10px; letter-spacing:.3px; color:#7a5d2e; background:#f6efe2;
+          border-radius:20px; padding:2px 8px; margin-left:4px; margin-bottom:6px; font-weight:600; }
   .desc { font-size:11px; color:#5f6d64; line-height:1.45; display:-webkit-box;
           -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
   .badge { position:absolute; top:8px; right:8px; min-width:26px; height:26px; padding:0 6px;
@@ -3298,6 +3300,14 @@ function decodeXmlText(s) {
     }
     var period = rec.period ? '<div class="period">' + escapeHtml(rec.period) + '</div>' : '';
     var seasonT = rec.season && rec.season !== 'Не указан' ? '<div class="season">' + escapeHtml(rec.season) + '</div>' : '';
+    // Plant age from the diary's planting date (if set).
+    var ageHtml = '';
+    var dKey = uch + ':' + mesto;
+    var dData = (typeof diaries !== 'undefined' && diaries && typeof diaries[dKey] === 'object') ? diaries[dKey] : null;
+    var plantDate = (dData && dData.plantDate) || '';
+    if (plantDate && typeof calcAge === 'function'){
+      ageHtml = '<div class="card-age">' + escapeHtml(calcAge(plantDate)) + '</div>';
+    }
     var desc = rec.desc ? '<div class="desc">' + escapeHtml(rec.desc) + '</div>' : '';
     var type = rec.type ? '<div class="type">' + escapeHtml(rec.type) + '</div>' : '';
     var hrefAttr = escapeHtml(href);
@@ -3308,9 +3318,39 @@ function decodeXmlText(s) {
       + '" data-type="' + escapeHtml(rec.type || '') + '" data-uch="' + uch + '" data-mesto="' + mesto + '">'
       + '<div class="photo">' + photo
       + '<button type="button" class="card-edit" data-edit aria-label="Редактировать">✎</button></div>'
-      + '<div class="info"><div class="title">' + escapeHtml(rec.sort) + '</div>' + period + type + seasonT + desc + '</div>'
+      + '<div class="info"><div class="title">' + escapeHtml(rec.sort) + '</div>' + period + type + seasonT + ageHtml + desc + '</div>'
       + '<div class="card-actions"><button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button></div>'
       + '<div class="badge">' + mesto + '</div></a>';
+  }
+
+  // Add (or update) the plant-age badge on every card in the grids, based on the
+  // diary's planting date. Works for static cards too (called after overrides are applied).
+  function refreshCardAges(){
+    if (typeof diaries === 'undefined' || typeof calcAge !== 'function') return;
+    var gs = allGrids();
+    for (var gi = 0; gi < gs.length; gi++){
+      var cards = gs[gi].querySelectorAll('.card:not(.empty)');
+      for (var ci = 0; ci < cards.length; ci++){
+        var card = cards[ci];
+        var m = card.getAttribute('data-mesto');
+        var u = card.getAttribute('data-uch');
+        if (!m || !u) continue;
+        var dKey = u + ':' + m;
+        var dData = (typeof diaries[dKey] === 'object' && diaries[dKey]) ? diaries[dKey] : null;
+        var plantDate = (dData && dData.plantDate) || '';
+        var info = card.querySelector('.info');
+        if (!info) continue;
+        // remove old age badge if present
+        var old = card.querySelector('.card-age');
+        if (old) old.remove();
+        if (plantDate && calcAge){
+          var ageEl = document.createElement('div');
+          ageEl.className = 'card-age';
+          ageEl.textContent = calcAge(plantDate);
+          info.appendChild(ageEl);
+        }
+      }
+    }
   }
 
   function buildEmptyHTML(uch, mesto){
@@ -3357,6 +3397,7 @@ function decodeXmlText(s) {
       if (isNaN(uch) || isNaN(mesto)) continue;
       replaceOrInsert(uch, mesto, overrides[k] || null);
     }
+    refreshCardAges();
     applyFilter();
   }
 
