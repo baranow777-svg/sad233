@@ -3835,6 +3835,9 @@ function decodeXmlText(s) {
       return;
     }
     if (menuBackdrop && (target === menuBackdrop || target.closest('.menu-backdrop'))){ closeMenu(); return; }
+    // clicked outside the menu: make sure the backdrop is hidden so it never
+    // blocks clicks on cards.
+    closeMenu();
   });
 
   document.getElementById('add-btn').addEventListener('click', function(){ openAdd(1, ''); });
