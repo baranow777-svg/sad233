@@ -3877,6 +3877,24 @@ function decodeXmlText(s) {
       openAdd(uch, mesto);
       return;
     }
+    // Click on a regular plant card (not on one of its buttons): open the
+    // linked page in a new tab explicitly. This is more reliable than relying
+    // on the anchor's target=_blank inside sandboxed/iframe contexts.
+    var card = e.target.closest('.card');
+    if (card){
+      var href = card.getAttribute('href');
+      if (href && href !== '#' && href !== ''){
+        e.preventDefault();
+        e.stopPropagation();
+        window.open(href, '_blank', 'noopener');
+        return;
+      } else if (href === '#' || href === ''){
+        // No external link: fall back to opening the diary/plant view
+        e.preventDefault(); e.stopPropagation();
+        if (typeof openDiary === 'function') openDiary(card);
+        return;
+      }
+    }
   });
 
   // ===== Plant diary =====
