@@ -3282,10 +3282,15 @@ function decodeXmlText(s) {
   function buildCardHTML(uch, mesto, rec){
     var href = rec.url ? rec.url : '#';
     var imgSrc = '';
+    var existing = findCard(uch, mesto);
+    // If an explicit url is missing, keep the original card's link (from static data),
+    // so clicking still opens the nursery page. Only fall back to '#' if none exists.
+    if (!href || href === '#'){
+      if (existing && existing.getAttribute('href') && existing.getAttribute('href') !== '#') href = existing.getAttribute('href');
+    }
     if (rec.photo){
       imgSrc = rec.photo;
     } else {
-      var existing = findCard(uch, mesto);
       if (existing){
         var im = existing.querySelector('.photo img');
         if (im) imgSrc = im.getAttribute('src');
@@ -4307,13 +4312,15 @@ function decodeXmlText(s) {
         var row = plants.rows[r];
         if (row[0] == null || row[0] === '') continue;
         var k = String(row[0]) + ':' + String(row[1] == null ? '' : row[1]);
+        var existingCard = findCard(parseInt(row[0],10), parseInt(row[1],10));
+        var existingUrl = existingCard && existingCard.getAttribute('href') && existingCard.getAttribute('href') !== '#' ? existingCard.getAttribute('href') : '';
         newOverrides[k] = {
           type: String(row[2] || ''),
           sort: String(row[3] || ''),
           desc: String(row[4] || ''),
           period: String(row[5] || ''),
           season: String(row[6] || ''),
-          url: ''
+          url: existingUrl
         };
       }
       overrides = newOverrides;
