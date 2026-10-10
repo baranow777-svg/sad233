@@ -27,7 +27,23 @@
            padding:14px 16px; box-shadow:0 1px 4px rgba(0,0,0,.04); }
   header h1 { margin:0; font-size:19px; font-weight:700; letter-spacing:.2px; }
   header .sub { color:#6b7a70; font-size:12px; margin-top:2px; }
-  .search-wrap { position:relative; margin-top:12px; }
+  .topbar { display:flex; align-items:center; gap:10px; margin-top:12px; }
+  .topbar .search-wrap { flex:1; margin-top:0; }
+  .menu-btn { flex-shrink:0; padding:10px 14px; font-size:13.5px; font-weight:600; color:#fff;
+          background:var(--green); border:none; border-radius:12px; cursor:pointer;
+          box-shadow:0 1px 4px rgba(0,0,0,.12); white-space:nowrap; }
+  .menu-btn:hover { background:var(--leaf); }
+  .menu-dropdown { position:fixed; top:0; right:0; z-index:80; width:230px; max-width:80vw;
+          background:#fff; border:none; box-shadow:-4px 0 24px rgba(0,0,0,.18);
+          border-radius:0 0 0 16px; padding:10px; display:flex; flex-direction:column; gap:4px; }
+  .menu-dropdown[hidden] { display:none; }
+  .menu-item { width:100%; text-align:left; padding:12px 14px; font-size:14px; font-weight:600;
+          color:var(--dark); background:#fff; border:none; border-radius:10px; cursor:pointer;
+          font-family:inherit; }
+  .menu-item:hover { background:#eef3ee; color:var(--green); }
+  .menu-backdrop { position:fixed; inset:0; z-index:79; background:rgba(20,30,24,.35); }
+  .menu-backdrop[hidden] { display:none; }
+  .search-wrap { position:relative; }
   .search-wrap .search-icon { position:absolute; left:12px; top:50%; transform:translateY(-50%);
           color:#8a978e; pointer-events:none; }
   .search-wrap input { width:100%; padding:11px 38px 11px 38px; font-size:15px; border:1px solid #dae3da;
@@ -40,14 +56,6 @@
           font-size:14px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; }
   .search-wrap #search-clear:hover { background:#e2e9e2; }
   .result-info { font-size:12px; color:#6b7a70; margin:8px 2px 0; min-height:16px; }
-  .add-btn { display:inline-flex; align-items:center; gap:6px; margin-top:12px; padding:9px 16px;
-             font-size:13.5px; font-weight:600; color:#fff; background:var(--green); border:none;
-             border-radius:12px; cursor:pointer; box-shadow:0 1px 4px rgba(0,0,0,.12); }
-  .add-btn:hover { background:var(--leaf); }
-  .add-btn.ghost { background:#fff; color:var(--green); border:1px solid #cfe2cf; margin-left:8px; }
-  .add-btn.ghost:hover { background:#f0f6f0; }
-  .header-btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
-  .header-btns .add-btn { margin-top:0; }
   .card.empty { cursor:pointer; }
   .modal-overlay { position:fixed; inset:0; z-index:100; background:rgba(20,30,24,.55);
                    display:flex; align-items:flex-start; justify-content:center; padding:28px 16px;
@@ -103,6 +111,8 @@
   .diary-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:6px; }
   .diary-head h3 { margin:0; font-size:18px; font-weight:700; }
   .diary-head .diary-sub { font-size:12px; color:#6b7a70; margin-top:2px; }
+  .diary-archive-row { margin-top:10px; }
+  .diary-archive-row .btn-del-plant { margin-top:0; padding:8px 12px; font-size:12.5px; }
   .diary-age { display:inline-flex; align-items:center; gap:6px; margin-top:8px; padding:6px 12px;
                background:#eef6ef; color:#2e6b46; border-radius:10px; font-size:12.5px; font-weight:600; }
   .diary-form { margin-top:14px; padding:12px; background:#f6f8f5; border:1px solid #e2eae2;
@@ -159,9 +169,8 @@
   .section-title { font-size:16px; font-weight:700; margin:22px 4px 10px; color:var(--green);
                    display:flex; align-items:center; gap:8px; }
   .section-title::after { content:""; flex:1; height:1px; background:#dbe5db; }
-  .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  @media (min-width:560px){ .grid { grid-template-columns:1fr 1fr 1fr; } }
-  @media (min-width:760px){ .grid { grid-template-columns:1fr 1fr 1fr 1fr; } }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)); gap:12px; }
+  @media (max-width:400px){ .grid { grid-template-columns:repeat(auto-fill, minmax(140px, 1fr)); } }
   .card { position:relative; display:block; background:#fff; border-radius:14px; overflow:hidden;
           box-shadow:var(--shadow); text-decoration:none; color:inherit; transition:transform .08s ease; }
   .card:active { transform:scale(.98); }
@@ -286,13 +295,21 @@
     <button type="button" id="search-clear" aria-label="Очистить" hidden>✕</button>
   </div>
   <div id="result-info" class="result-info"></div>
-  <div class="header-btns">
-    <button type="button" id="add-btn" class="add-btn">＋ Добавить карточку</button>
-    <button type="button" id="global-diary-btn" class="add-btn ghost">Дневник</button>
-    <button type="button" id="archive-btn" class="add-btn ghost">Архив</button>
-    <button type="button" id="export-btn" class="add-btn ghost">Экспорт (Excel)</button>
-    <button type="button" id="import-btn" class="add-btn ghost">Импорт (Excel)</button>
-    <input type="file" id="import-file" accept=".xlsx" style="display:none">
+  <div class="topbar">
+    <button type="button" id="menu-btn" class="menu-btn" aria-label="Меню">☰ Меню</button>
+    <div class="menu-dropdown" id="menu-dropdown" hidden>
+      <button type="button" id="add-btn" class="menu-item">＋ Добавить карточку</button>
+      <button type="button" id="global-diary-btn" class="menu-item">Дневник</button>
+      <button type="button" id="archive-btn" class="menu-item">Архив</button>
+      <button type="button" id="export-btn" class="menu-item">Экспорт (Excel)</button>
+      <button type="button" id="import-btn" class="menu-item">Импорт (Excel)</button>
+      <input type="file" id="import-file" accept=".xlsx" style="display:none">
+    </div>
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M15.5 14h-.79l-.28-.27a6.5 6.5 0 1 0-.7.7l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0A4.5 4.5 0 1 1 14 9.5 4.5 4.5 0 0 1 9.5 14z"/></svg>
+      <input type="search" id="search" placeholder="Поиск растения или номера места…" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <button type="button" id="search-clear" aria-label="Очистить" hidden>✕</button>
+    </div>
   </div>
 </header>
 <div class="modal-overlay" id="modal" hidden>
@@ -396,6 +413,9 @@
       </div>
       <button type="button" class="modal-close" id="diary-close" aria-label="Закрыть">✕</button>
     </div>
+    <div class="diary-archive-row">
+      <button type="button" class="btn-del-plant" id="diary-archive-btn">Убрать в архив</button>
+    </div>
     <div class="diary-age" id="diary-age"></div>
     <div class="diary-form">
       <div class="diary-form-head">
@@ -490,7 +510,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">1</div>
       </a>
@@ -508,7 +527,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">2</div>
       </a>
@@ -526,7 +544,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">3</div>
       </a>
@@ -544,7 +561,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">4</div>
       </a>
@@ -562,7 +578,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">5</div>
       </a>
@@ -580,7 +595,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">6</div>
       </a>
@@ -598,7 +612,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">7</div>
       </a>
@@ -616,7 +629,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">8</div>
       </a>
@@ -634,7 +646,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">9</div>
       </a>
@@ -652,7 +663,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">10</div>
       </a>
@@ -670,7 +680,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">11</div>
       </a>
@@ -688,7 +697,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">12</div>
       </a>
@@ -706,7 +714,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">13</div>
       </a>
@@ -724,7 +731,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">14</div>
       </a>
@@ -742,7 +748,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">15</div>
       </a>
@@ -760,7 +765,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">16</div>
       </a>
@@ -778,7 +782,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">17</div>
       </a>
@@ -796,7 +799,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">18</div>
       </a>
@@ -814,7 +816,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">19</div>
       </a>
@@ -832,7 +833,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">20</div>
       </a>
@@ -850,7 +850,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">21</div>
       </a>
@@ -868,7 +867,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">22</div>
       </a>
@@ -886,7 +884,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">23</div>
       </a>
@@ -904,7 +901,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">24</div>
       </a>
@@ -922,7 +918,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">25</div>
       </a>
@@ -940,7 +935,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">26</div>
       </a>
@@ -958,7 +952,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">27</div>
       </a>
@@ -976,7 +969,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">28</div>
       </a>
@@ -1000,7 +992,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">30</div>
       </a>
@@ -1024,7 +1015,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">32</div>
       </a>
@@ -1048,7 +1038,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">34</div>
       </a>
@@ -1072,7 +1061,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">36</div>
       </a>
@@ -1090,7 +1078,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">37</div>
       </a>
@@ -1108,7 +1095,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">38</div>
       </a>
@@ -1126,7 +1112,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">39</div>
       </a>
@@ -1150,7 +1135,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">41</div>
       </a>
@@ -1174,7 +1158,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">43</div>
       </a>
@@ -1198,7 +1181,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">45</div>
       </a>
@@ -1222,7 +1204,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">47</div>
       </a>
@@ -1246,7 +1227,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">49</div>
       </a>
@@ -1264,7 +1244,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">50</div>
       </a>
@@ -1282,7 +1261,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">51</div>
       </a>
@@ -1300,7 +1278,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">52</div>
       </a>
@@ -1318,7 +1295,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">53</div>
       </a>
@@ -1336,7 +1312,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">54</div>
       </a>
@@ -1354,7 +1329,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">55</div>
       </a>
@@ -1372,7 +1346,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">56</div>
       </a>
@@ -1396,7 +1369,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">58</div>
       </a>
@@ -1420,7 +1392,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">60</div>
       </a>
@@ -1444,7 +1415,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">62</div>
       </a>
@@ -1462,7 +1432,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">63</div>
       </a>
@@ -1480,7 +1449,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">64</div>
       </a>
@@ -1498,7 +1466,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">65</div>
       </a>
@@ -1516,7 +1483,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">66</div>
       </a>
@@ -1534,7 +1500,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">67</div>
       </a>
@@ -1552,7 +1517,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">68</div>
       </a>
@@ -1570,7 +1534,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">69</div>
       </a>
@@ -1588,7 +1551,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">70</div>
       </a>
@@ -1606,7 +1568,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">71</div>
       </a>
@@ -1624,7 +1585,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">72</div>
       </a>
@@ -1642,7 +1602,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">73</div>
       </a>
@@ -1660,7 +1619,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">74</div>
       </a>
@@ -1678,7 +1636,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">75</div>
       </a>
@@ -1696,7 +1653,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">76</div>
       </a>
@@ -1714,7 +1670,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">77</div>
       </a>
@@ -1732,7 +1687,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">78</div>
       </a>
@@ -1750,7 +1704,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">79</div>
       </a>
@@ -1768,7 +1721,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">80</div>
       </a>
@@ -1786,7 +1738,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">81</div>
       </a>
@@ -1804,7 +1755,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">82</div>
       </a>
@@ -1822,7 +1772,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">83</div>
       </a>
@@ -1840,7 +1789,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">84</div>
       </a>
@@ -1858,7 +1806,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">85</div>
       </a>
@@ -1876,7 +1823,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">86</div>
       </a>
@@ -1894,7 +1840,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">87</div>
       </a>
@@ -1912,7 +1857,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">88</div>
       </a>
@@ -1930,7 +1874,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">89</div>
       </a>
@@ -1948,7 +1891,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">90</div>
       </a>
@@ -1966,7 +1908,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">91</div>
       </a>
@@ -1984,7 +1925,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">92</div>
       </a>
@@ -2002,7 +1942,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">93</div>
       </a>
@@ -2020,7 +1959,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">94</div>
       </a>
@@ -2054,7 +1992,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">1</div>
       </a>
@@ -2072,7 +2009,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">2</div>
       </a>
@@ -2090,7 +2026,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">3</div>
       </a>
@@ -2108,7 +2043,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">4</div>
       </a>
@@ -2126,7 +2060,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">5</div>
       </a>
@@ -2144,7 +2077,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">6</div>
       </a>
@@ -2162,7 +2094,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">7</div>
       </a>
@@ -2180,7 +2111,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">8</div>
       </a>
@@ -2198,7 +2128,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">9</div>
       </a>
@@ -2216,7 +2145,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">10</div>
       </a>
@@ -2234,7 +2162,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">11</div>
       </a>
@@ -2252,7 +2179,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">12</div>
       </a>
@@ -2270,7 +2196,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">13</div>
       </a>
@@ -2288,7 +2213,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">14</div>
       </a>
@@ -2306,7 +2230,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">15</div>
       </a>
@@ -2324,7 +2247,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">16</div>
       </a>
@@ -2342,7 +2264,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">17</div>
       </a>
@@ -2360,7 +2281,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">18</div>
       </a>
@@ -2378,7 +2298,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">19</div>
       </a>
@@ -2396,7 +2315,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">20</div>
       </a>
@@ -2414,7 +2332,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">21</div>
       </a>
@@ -2432,7 +2349,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">22</div>
       </a>
@@ -2450,7 +2366,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">23</div>
       </a>
@@ -2468,7 +2383,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">24</div>
       </a>
@@ -2486,7 +2400,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">25</div>
       </a>
@@ -2504,7 +2417,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">26</div>
       </a>
@@ -2522,7 +2434,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">27</div>
       </a>
@@ -2540,7 +2451,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">28</div>
       </a>
@@ -2558,7 +2468,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">29</div>
       </a>
@@ -2576,7 +2485,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">30</div>
       </a>
@@ -2594,7 +2502,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">31</div>
       </a>
@@ -2612,7 +2519,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">32</div>
       </a>
@@ -2630,7 +2536,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">33</div>
       </a>
@@ -2648,7 +2553,6 @@
         </div>
         <div class="card-actions">
           <button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>
-          <button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button>
         </div>
         <div class="badge">34</div>
       </a>
@@ -3382,8 +3286,7 @@ function decodeXmlText(s) {
       + '<div class="photo">' + photo
       + '<button type="button" class="card-edit" data-edit aria-label="Редактировать">✎</button></div>'
       + '<div class="info"><div class="title">' + escapeHtml(rec.sort) + '</div>' + period + type + seasonT + desc + '</div>'
-      + '<div class="card-actions"><button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button>'
-      + '<button type="button" class="btn-del-plant" data-archive aria-label="Удалить растение">Убрать в архив</button></div>'
+      + '<div class="card-actions"><button type="button" class="btn-diary" data-diary aria-label="Дневник растения">Дневник растения</button></div>'
       + '<div class="badge">' + mesto + '</div></a>';
   }
 
@@ -3856,6 +3759,28 @@ function decodeXmlText(s) {
     closeArchivedView();
   }
 
+  var menuBtn = document.getElementById('menu-btn');
+  var menuDropdown = document.getElementById('menu-dropdown');
+  var menuBackdrop = document.createElement('div');
+  menuBackdrop.className = 'menu-backdrop';
+  menuBackdrop.hidden = true;
+  document.body.appendChild(menuBackdrop);
+  function toggleMenu(){
+    var open = menuDropdown.hidden;
+    menuDropdown.hidden = !open;
+    menuBackdrop.hidden = !open;
+  }
+  function closeMenu(){
+    if (menuDropdown && !menuDropdown.hidden) menuDropdown.hidden = true;
+    if (menuBackdrop && !menuBackdrop.hidden) menuBackdrop.hidden = true;
+  }
+  if (menuBtn) menuBtn.addEventListener('click', function(e){ e.stopPropagation(); toggleMenu(); });
+  if (menuBackdrop) menuBackdrop.addEventListener('click', closeMenu);
+  // Close menu when any item is clicked
+  if (menuDropdown) menuDropdown.addEventListener('click', function(e){
+    if (e.target && e.target.closest && e.target.closest('.menu-item')) closeMenu();
+  });
+
   document.getElementById('add-btn').addEventListener('click', function(){ openAdd(1, ''); });
   document.getElementById('modal-close').addEventListener('click', closeModal);
   document.getElementById('modal-cancel').addEventListener('click', closeModal);
@@ -3915,6 +3840,7 @@ function decodeXmlText(s) {
   var dCancelEdit = document.getElementById('diary-cancel-edit');
   var dSaveBtn = document.getElementById('diary-save');
   var diaryKey = null; // current plant key "uch:mesto"
+  var diaryCardEl = null; // current .card element the diary was opened from
   var pendingPhotos = []; // data-URLs selected for the new entry
   var editingEntryId = null; // id of entry being edited, or null
 
@@ -3969,6 +3895,7 @@ function decodeXmlText(s) {
   }
 
   function openDiary(card){
+    diaryCardEl = card;
     var uch = parseInt(card.getAttribute('data-uch'),10);
     var mesto = parseInt(card.getAttribute('data-mesto'),10);
     var k = diaryKeyOf(uch, mesto);
@@ -3993,6 +3920,7 @@ function decodeXmlText(s) {
     diaryModal.hidden = true;
     document.body.style.overflow = '';
     diaryKey = null;
+    diaryCardEl = null;
     pendingPhotos = [];
     editingEntryId = null;
   }
@@ -4154,6 +4082,9 @@ function decodeXmlText(s) {
   diaryModal.addEventListener('click', function(e){ if (e.target === diaryModal) closeDiary(); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape' && !diaryModal.hidden) closeDiary(); });
   document.getElementById('diary-save').addEventListener('click', addDiaryEntry);
+  document.getElementById('diary-archive-btn').addEventListener('click', function(){
+    if (diaryCardEl){ archivePlant(diaryCardEl); closeDiary(); }
+  });
   document.getElementById('global-diary-btn').addEventListener('click', openGlobalDiary);
   gdClose.addEventListener('click', closeGlobalDiary);
   gdModal.addEventListener('click', function(e){ if (e.target === gdModal) closeGlobalDiary(); });
@@ -4291,13 +4222,15 @@ function decodeXmlText(s) {
     reader.onload = function(ev){
       try {
         var data = new Uint8Array(ev.target.result);
-        var sheets = parseWorkbook(data);
-        applyImportedSheets(sheets);
-        applyOverridesToDOM();
-        renderArchive();
-        renderDiaryEntries();
-        applyFilter();
-        alert('Импорт завершён успешно');
+        (window.__importExcel ? window.__importExcel(data) : Promise.resolve()).then(function(){
+          applyOverridesToDOM();
+          renderArchive();
+          renderDiaryEntries();
+          applyFilter();
+          alert('Импорт завершён успешно');
+        }).catch(function(err){
+          alert('Ошибка импорта: ' + err.message);
+        });
       } catch (err){
         alert('Ошибка импорта: ' + err.message);
       }
@@ -4375,6 +4308,138 @@ function decodeXmlText(s) {
     if (diaryKey && typeof renderDiaryEntries === 'function') renderDiaryEntries();
     applyFilter();
   });
+  // Async Excel import that supports compressed (DEFLATE) ZIP entries, which
+  // many real .xlsx files use. Falls back to the synchronous parser for stored entries.
+  window.__importExcel = function(bytes){
+    return Promise.resolve().then(function(){
+      var files;
+      try {
+        return { mode: 'sync', files: (function(){ return parseZip(bytes); })() };
+      } catch (e) {
+        if (typeof DecompressionStream === 'undefined') throw e;
+        return { mode: 'async', files: inflateZipAsync(bytes) };
+      }
+    }).then(function(res){
+      if (res.mode === 'sync') {
+        return { files: res.files, sheets: parseWorkbookData(res.files) };
+      }
+      return { sheets: parseWorkbookData(res.files) };
+    }).then(function(r){
+      applyImportedSheets(r.sheets);
+      return r;
+    });
+  };
+
+  function parseWorkbookData(files){
+    // replicate parseWorkbook body for a raw files map
+    return parseWorkbookFromFiles(files);
+  }
+
+  // Async inflate for all deflate (method 8) entries in a ZIP.
+  function inflateZipAsync(data){
+    var dv = new DataView(data.buffer, data.byteOffset, data.byteLength);
+    var eocdPos = -1;
+    for (var i = data.length - 22; i >= 0 && eocdPos < 0; i--) {
+      if (dv.getUint32(i, true) === 0x06054b50) eocdPos = i;
+    }
+    if (eocdPos < 0) throw new Error('Не найден конец ZIP-архива');
+    var cdCount = dv.getUint16(eocdPos + 10, true);
+    var cdOffset = dv.getUint32(eocdPos + 16, true);
+    var entries = [];
+    var p = cdOffset;
+    for (var i = 0; i < cdCount; i++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) break;
+      var method = dv.getUint16(p + 10, true);
+      var csize = dv.getUint32(p + 20, true);
+      var usize = dv.getUint32(p + 24, true);
+      var nlen = dv.getUint16(p + 28, true);
+      var elen = dv.getUint16(p + 30, true);
+      var clen = dv.getUint16(p + 32, true);
+      var lho = dv.getUint32(p + 42, true);
+      var name = new TextDecoder().decode(new Uint8Array(data.buffer, data.byteOffset + p + 46, nlen));
+      var lhDv = new DataView(data.buffer, data.byteOffset + lho, 30);
+      var lname = lhDv.getUint16(26, true);
+      var lextra = lhDv.getUint16(28, true);
+      var start = lho + 30 + lname + lextra;
+      entries.push({ name: name, method: method, csize: csize, usize: usize, start: start });
+      p += 46 + nlen + elen + clen;
+    }
+    var ops = entries.map(function(en){
+      var raw = new Uint8Array(data.buffer, data.byteOffset + en.start, en.csize);
+      if (en.method === 0) return Promise.resolve({ name: en.name, data: raw });
+      if (en.method === 8) {
+        // raw deflate
+        var ds = new DecompressionStream('deflate-raw');
+        var stream = new Blob([raw]).stream().pipeThrough(ds);
+        return new Response(stream).arrayBuffer().then(function(buf){
+          return { name: en.name, data: new Uint8Array(buf) };
+        });
+      }
+      return Promise.reject(new Error('Метод сжатия ' + en.method + ' не поддерживается'));
+    });
+    return Promise.all(ops).then(function(list){
+      var files = {};
+      for (var i = 0; i < list.length; i++) files[list[i].name] = list[i].data;
+      return files;
+    });
+  }
+
+  function parseWorkbookFromFiles(files){
+    // parse sheets from a raw files map (names -> Uint8Array)
+    function get(n){ return new TextDecoder().decode(files[n]); }
+    var wb = get('xl/workbook.xml');
+    var rels = get('xl/_rels/workbook.xml.rels');
+    var sheetInfo = {};
+var nameRe = /<sheet [^>]*name="([^"]*)"[^>]*r:id="(rId\d+)"/g;
+    var mm;
+    while ((mm = nameRe.exec(wb))) {
+      var rid = mm[2];
+      var relM = rels.match(new RegExp('Id="' + rid + '"[^>]*Target="([^"]+)"'));
+      var target = relM ? relM[1] : '';
+      var base = target.split('/').pop().replace(/^\//, '');
+      sheetInfo[base] = mm[1];
+    }
+    var sst = [];
+    var sstXml = get('xl/sharedStrings.xml');
+    var siRe = /<si>(?:<t[^>]*>([\s\S]*?)<\/t>|[\s\S]*?)<\/si>/g;
+    var m2;
+    while ((m2 = siRe.exec(sstXml))) sst.push(decodeXmlText(m2[1] || ''));
+    var sheets = [];
+    for (var base in sheetInfo) {
+      var xml = get('xl/worksheets/' + base);
+      var rows = [];
+      var rowRe = /<row[^>]*>([\s\S]*?)<\/row>/g;
+      var m3;
+      while ((m3 = rowRe.exec(xml))) {
+        var cells = [];
+        var cellRe = /<c[^>]*r="([A-Z]+)(\d+)"(?:[^>]*t="([^"]*)")?[^>]*>(?:<v>([\s\S]*?)<\/v>)?<\/c>/g;
+        var m4;
+        var maxCol = -1;
+        var cellMap = {};
+        while ((m4 = cellRe.exec(m3[1]))) {
+          var colIdx = colIndexFn(m4[1]);
+          var type = m4[3] || 'n';
+          var v = m4[4];
+          var val;
+          if (type === 's') val = sst[parseInt(v, 10)];
+          else if (type === 'n') val = v === undefined ? null : parseFloat(v);
+          else val = decodeXmlText(v || '');
+          cellMap[colIdx] = val;
+          if (colIdx > maxCol) maxCol = colIdx;
+        }
+        for (var c = 0; c <= maxCol; c++) cells.push(cellMap[c] === undefined ? '' : cellMap[c]);
+        rows.push(cells);
+      }
+      sheets.push({ name: sheetInfo[base], rows: rows });
+    }
+    return sheets;
+  }
+  function colIndexFn(s){
+    var n = 0;
+    for (var i = 0; i < s.length; i++) n = n * 26 + (s.charCodeAt(i) - 64);
+    return n - 1;
+  }
+
   // initial cloud pull (don't overwrite newer local edits)
   window.__storeSyncNow();
 
